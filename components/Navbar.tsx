@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const navigasi = [
   { nama: "Beranda", href: "/", ikon: "⌂" },
@@ -13,6 +14,36 @@ const navigasi = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [jumlahKeranjang, setJumlahKeranjang] = useState(0);
+
+  useEffect(() => {
+    const perbaruiJumlah = () => {
+      try {
+        const data = localStorage.getItem("keranjang");
+        const cart = data ? JSON.parse(data) : [];
+
+        const total = Array.isArray(cart)
+          ? cart.reduce(
+              (jumlah, item) =>
+                jumlah + (typeof item.jumlah === "number" ? item.jumlah : 0),
+              0,
+            )
+          : 0;
+
+        setJumlahKeranjang(total);
+      } catch {
+        setJumlahKeranjang(0);
+      }
+    };
+
+    perbaruiJumlah();
+
+    window.addEventListener("keranjang-berubah", perbaruiJumlah);
+
+    return () => {
+      window.removeEventListener("keranjang-berubah", perbaruiJumlah);
+    };
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-purple-100 shadow-sm">
@@ -40,6 +71,12 @@ export default function Navbar() {
               >
                 <span>{item.ikon}</span>
                 {item.nama}
+
+                {item.href === "/keranjang" && jumlahKeranjang > 0 && (
+                  <span className="bg-rose-500 text-white text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center">
+                    {jumlahKeranjang}
+                  </span>
+                )}
               </Link>
             );
           })}
