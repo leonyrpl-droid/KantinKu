@@ -2,23 +2,24 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div>
-      <section className="py-16 text-center">
-        <h1 className="text-4xl font-bold text-purple-700">
-          Selamat Datang di KantinKu
+    <main className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] bg-slate-50 px-6 text-center">
+      <div className="max-w-2xl space-y-6">
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+          Selamat Datang di <span className="text-blue-600">KantinKu</span> 🍲
         </h1>
-
-        <p className="mt-4 text-gray-600">
-          Nikmati berbagai makanan dan minuman favoritmu di kantin sekolah.
+        <p className="text-lg text-slate-600 max-w-lg mx-auto leading-relaxed">
+          Pesan makanan dan minuman favoritmu di kantin sekolah dengan cepat,
+          mudah, dan tanpa antre panjang.
         </p>
-
-        <Link
-          href="/menu"
-          className="inline-block mt-6 bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-800"
-        >
-          Lihat Menu
-        </Link>
-      </section>
-    </div>
+        <div>
+          <Link
+            href="/menu"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3.5 rounded-full shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all duration-200"
+          >
+            Lihat Menu Kantin
+          </Link>
+        </div>
+      </div>
+    </main>
   );
 }
