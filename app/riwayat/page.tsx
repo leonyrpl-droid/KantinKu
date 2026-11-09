@@ -32,7 +32,6 @@ export default function HalamanRiwayat() {
         const data = localStorage.getItem("riwayat");
         const daftar: Pesanan[] = data ? JSON.parse(data) : [];
 
-        // Checkout sudah menyimpan pesanan terbaru di urutan pertama.
         setRiwayat(Array.isArray(daftar) ? daftar : []);
       } catch (error) {
         console.error("Gagal membaca riwayat:", error);
@@ -44,6 +43,20 @@ export default function HalamanRiwayat() {
 
     return () => window.cancelAnimationFrame(frameId);
   }, []);
+
+  // Menghapus seluruh riwayat pesanan
+  const hapusRiwayat = () => {
+    const yakin = window.confirm(
+      "Apakah kamu yakin ingin menghapus seluruh riwayat pesanan?",
+    );
+
+    if (!yakin) return;
+
+    localStorage.removeItem("riwayat");
+    setRiwayat([]);
+
+    alert("Riwayat pesanan berhasil dihapus.");
+  };
 
   const totalBelanja = riwayat.reduce(
     (total, pesanan) => total + pesanan.total,
@@ -85,6 +98,15 @@ export default function HalamanRiwayat() {
                 </p>
               </div>
             </div>
+
+            <button
+              type="button"
+              onClick={hapusRiwayat}
+              disabled={riwayat.length === 0}
+              className="mb-6 rounded-xl bg-red-600 px-5 py-3 font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Hapus Riwayat
+            </button>
 
             {riwayat.length === 0 ? (
               <div className="rounded-2xl border bg-white p-10 text-center">
