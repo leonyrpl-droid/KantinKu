@@ -4,43 +4,49 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { rupiah } from "@/data/menu";
 
-type ItemPesanan = {
-  id?: number;
-  nama?: string;
-  namaMenu?: string;
-  jumlah?: number;
-  harga?: number;
-  subtotal?: number;
-};
+interface ItemPesanan {
+  nama: string;
+  jumlah: number;
+  subtotal: number;
+}
 
-type Pesanan = {
-  nama?: string;
-  namaPemesan?: string;
-  kelas?: string;
-  tanggal?: string;
-  total?: number;
-  subtotal?: number;
-  item?: ItemPesanan[];
-  items?: ItemPesanan[];
-  keranjang?: ItemPesanan[];
-};
+interface Pesanan {
+  nama: string;
+  caraAmbil: string;
+  kelas: string;
+  item: ItemPesanan[];
+  subtotal: number;
+  diskon: number;
+  ongkir: number;
+  total: number;
+  tanggal: string;
+}
 
 export default function HalamanRiwayat() {
   const [riwayat, setRiwayat] = useState<Pesanan[]>([]);
+  const [memuat, setMemuat] = useState(true);
 
   useEffect(() => {
-    try {
-      const data = localStorage.getItem("riwayat");
-      const daftar: Pesanan[] = data ? JSON.parse(data) : [];
+    const frameId = window.requestAnimationFrame(() => {
+      try {
+        const data = localStorage.getItem("riwayat");
+        const daftar: Pesanan[] = data ? JSON.parse(data) : [];
 
-      setRiwayat([...daftar].reverse());
-    } catch {
-      setRiwayat([]);
-    }
+        // Checkout sudah menyimpan pesanan terbaru di urutan pertama.
+        setRiwayat(Array.isArray(daftar) ? daftar : []);
+      } catch (error) {
+        console.error("Gagal membaca riwayat:", error);
+        setRiwayat([]);
+      } finally {
+        setMemuat(false);
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
   }, []);
 
   const totalBelanja = riwayat.reduce(
-    (total, pesanan) => total + Number(pesanan.total ?? pesanan.subtotal ?? 0),
+    (total, pesanan) => total + pesanan.total,
     0,
   );
 
@@ -60,93 +66,125 @@ export default function HalamanRiwayat() {
           Daftar pesanan yang pernah kamu lakukan.
         </p>
 
-        <div className="my-6 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl border bg-white p-5">
-            <p className="text-sm text-slate-500">Jumlah Pesanan</p>
-            <p className="mt-2 text-3xl font-black text-blue-600">
-              {riwayat.length}
-            </p>
-          </div>
-
-          <div className="rounded-2xl border bg-white p-5">
-            <p className="text-sm text-slate-500">Total Belanja</p>
-            <p className="mt-2 text-3xl font-black text-blue-600">
-              {rupiah(totalBelanja)}
-            </p>
-          </div>
-        </div>
-
-        {riwayat.length === 0 ? (
-          <div className="rounded-2xl border bg-white p-10 text-center">
-            <p className="font-semibold text-slate-600">Belum ada pesanan.</p>
-
-            <Link
-              href="/menu"
-              className="mt-4 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white"
-            >
-              Lihat Menu
-            </Link>
-          </div>
+        {memuat ? (
+          <p className="my-8 text-slate-600">Memuat riwayat pesanan...</p>
         ) : (
-          <div className="space-y-4">
-            {riwayat.map((pesanan, index) => {
-              const daftarItem =
-                pesanan.item ?? pesanan.items ?? pesanan.keranjang ?? [];
+          <>
+            <div className="my-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border bg-white p-5">
+                <p className="text-sm text-slate-500">Jumlah Pesanan</p>
+                <p className="mt-2 text-3xl font-black text-blue-600">
+                  {riwayat.length}
+                </p>
+              </div>
 
-              return (
-                <div
-                  key={index}
-                  className="rounded-2xl border bg-white p-6 shadow-sm"
+              <div className="rounded-2xl border bg-white p-5">
+                <p className="text-sm text-slate-500">Total Belanja</p>
+                <p className="mt-2 text-3xl font-black text-blue-600">
+                  {rupiah(totalBelanja)}
+                </p>
+              </div>
+            </div>
+
+            {riwayat.length === 0 ? (
+              <div className="rounded-2xl border bg-white p-10 text-center">
+                <p className="font-semibold text-slate-600">
+                  Belum ada pesanan.
+                </p>
+
+                <Link
+                  href="/menu"
+                  className="mt-4 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white"
                 >
-                  <div className="flex flex-wrap justify-between gap-3 border-b pb-4">
-                    <div>
-                      <h2 className="text-lg font-bold text-slate-900">
-                        {pesanan.nama ?? pesanan.namaPemesan ?? "Pesanan"}
-                      </h2>
-                      <p className="text-sm text-slate-500">
-                        {pesanan.kelas ?? ""}
+                  Lihat Menu
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {riwayat.map((pesanan, index) => (
+                  <div
+                    key={`${pesanan.tanggal}-${index}`}
+                    className="rounded-2xl border bg-white p-6 shadow-sm"
+                  >
+                    <div className="flex flex-wrap justify-between gap-3 border-b pb-4">
+                      <div>
+                        <h2 className="text-lg font-bold text-slate-900">
+                          {pesanan.nama}
+                        </h2>
+
+                        <p className="text-sm text-slate-500">
+                          {pesanan.tanggal}
+                        </p>
+                      </div>
+
+                      <span className="h-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
+                        Pesanan Berhasil
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 border-b py-4 text-sm">
+                      <p>
+                        <span className="font-semibold">Cara pengambilan:</span>{" "}
+                        {pesanan.caraAmbil}
+                      </p>
+
+                      <p>
+                        <span className="font-semibold">Kelas:</span>{" "}
+                        {pesanan.kelas}
                       </p>
                     </div>
 
-                    <p className="text-sm text-slate-500">
-                      {pesanan.tanggal ?? "Tanggal tidak tersedia"}
-                    </p>
-                  </div>
+                    <div className="space-y-3 py-4">
+                      <h3 className="font-bold text-slate-700">Rincian Menu</h3>
 
-                  <div className="space-y-2 py-4">
-                    {daftarItem.map((item, itemIndex) => (
-                      <div
-                        key={itemIndex}
-                        className="flex justify-between gap-3 text-sm"
-                      >
-                        <span>
-                          {item.nama ??
-                            item.namaMenu ??
-                            `Menu ID ${item.id ?? "-"}`}{" "}
-                          x {item.jumlah ?? 1}
-                        </span>
-                        <span>
-                          {rupiah(
-                            Number(
-                              item.subtotal ??
-                                (item.harga ?? 0) * (item.jumlah ?? 1),
-                            ),
-                          )}
+                      {pesanan.item.map((item, itemIndex) => (
+                        <div
+                          key={itemIndex}
+                          className="flex justify-between gap-3 text-sm"
+                        >
+                          <span>
+                            {item.nama} x {item.jumlah}
+                          </span>
+
+                          <span className="font-semibold">
+                            {rupiah(item.subtotal)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="space-y-2 border-t pt-4 text-sm">
+                      <div className="flex justify-between">
+                        <span>Subtotal</span>
+                        <span>{rupiah(pesanan.subtotal)}</span>
+                      </div>
+
+                      {pesanan.diskon > 0 && (
+                        <div className="flex justify-between text-emerald-600">
+                          <span>Diskon</span>
+                          <span>-{rupiah(pesanan.diskon)}</span>
+                        </div>
+                      )}
+
+                      {pesanan.ongkir > 0 && (
+                        <div className="flex justify-between">
+                          <span>Ongkos Kirim</span>
+                          <span>{rupiah(pesanan.ongkir)}</span>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between border-t pt-3 text-base font-black">
+                        <span>Total Bayar</span>
+                        <span className="text-blue-600">
+                          {rupiah(pesanan.total)}
                         </span>
                       </div>
-                    ))}
+                    </div>
                   </div>
-
-                  <div className="flex justify-between border-t pt-4 font-bold">
-                    <span>Total</span>
-                    <span className="text-blue-600">
-                      {rupiah(Number(pesanan.total ?? pesanan.subtotal ?? 0))}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </main>

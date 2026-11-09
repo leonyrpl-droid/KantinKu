@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, rupiah } from "@/data/menu";
+import { Menu } from "@/data/menu";
 import KartuMenu from "@/components/KartuMenu";
 
 export default function HalamanFavorit() {
