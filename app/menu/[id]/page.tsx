@@ -1,5 +1,6 @@
 "use client";
 
+import TombolFavorit from "@/components/TombolFavorit";
 import { use, useState, useEffect } from "react";
 import { useRouter, notFound } from "next/navigation";
 import Link from "next/link";
@@ -74,7 +75,6 @@ export default function DetailMenu({ params }: DetailProps) {
     const cart = getKeranjang();
 
     const ditemukan = cart.find((k) => k.id === item.id);
-
     const jumlahLama = ditemukan ? ditemukan.jumlah : 0;
 
     if (jumlah < 1 || jumlahLama + jumlah > item.stok) {
@@ -137,6 +137,9 @@ export default function DetailMenu({ params }: DetailProps) {
                 {item.nama}
               </h2>
             </div>
+
+            {/* Tombol Favorit */}
+            <TombolFavorit menuId={item.id} />
 
             <div className="flex justify-between items-center border-y py-5">
               <span className="text-slate-500 font-medium">Harga Satuan</span>
